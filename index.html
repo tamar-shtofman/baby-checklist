@@ -263,6 +263,7 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
       <div class="hdr-chips">
         <span class="due-chip" id="due-chip" onclick="editDueDate()">⏳ ...</span>
         <div class="sync-chip" id="sync-chip"><span class="sdot" id="sdot"></span><span id="sync-lbl">מסונכרן</span></div>
+        <button class="tools-btn" id="lock-btn" onclick="toggleEditMode()" title="מצב עריכה">🔒</button>
         <button class="tools-btn" onclick="openTools()">⚙️</button>
       </div>
     </div>
@@ -315,6 +316,7 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
 <script>
 const INLINE_DB_URL = 'https://baby-checklist-381ea-default-rtdb.firebaseio.com';
 const INLINE_API_KEY = 'AIzaSyDjs-duajgnPyk7jl_VgaoAfTo4-0Nm9RY';
+const EDIT_PIN = '5489';
 
 let DUE_DATE = new Date('2026-06-24');
 
@@ -437,7 +439,28 @@ const DEFAULTS = [
 ];
 
 let db=null,state={},_skip=false,activeFilter='all',searchQ='',activeSectionFilter=null,activeTagFilter='all';
+let editMode=localStorage.getItem('baby_edit')===EDIT_PIN;
 const prevSecPct={};
+
+function toggleEditMode(){
+  if(editMode){
+    editMode=false;localStorage.removeItem('baby_edit');
+    updateLockBtn();render();toast('מצב צפייה בלבד 🔒');
+  } else {
+    const pin=prompt('הכניסי קוד עריכה:');
+    if(pin===null)return;
+    if(pin===EDIT_PIN){
+      editMode=true;localStorage.setItem('baby_edit',EDIT_PIN);
+      updateLockBtn();render();toast('מצב עריכה פעיל ✏️');
+    } else {
+      toast('קוד שגוי ❌');
+    }
+  }
+}
+function updateLockBtn(){
+  const btn=document.getElementById('lock-btn');
+  if(btn){btn.textContent=editMode?'✏️':'🔒';btn.title=editMode?'מצב עריכה — לחצי לנעילה':'מצב צפייה — לחצי לעריכה';}
+}
 
 function generatePWAIcon(){
   try{
@@ -514,7 +537,7 @@ function loadData(){
 function showApp(){
   document.getElementById('loading').style.display='none';
   document.getElementById('app').style.display='block';
-  buildSecFilters();render();setSync('saved','מסונכרן');
+  buildSecFilters();render();setSync('saved','מסונכרן');updateLockBtn();
   setTimeout(()=>{
     const hh=document.getElementById('app-header').offsetHeight;
     document.getElementById('filter-bar').style.top=hh+'px';
@@ -740,31 +763,37 @@ function buildItemEl(sk,ik,it){
   const el=document.createElement('div');el.className='item st-'+st;el.dataset.item=sk+':'+ik;
 
   const r1=document.createElement('div');r1.className='item-row1';
-  const nameEl=document.createElement('span');nameEl.className='item-name';nameEl.contentEditable='true';nameEl.textContent=it.name;
-  nameEl.onblur=()=>saveItemName(sk,ik,nameEl);
-  nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};
+  const nameEl=document.createElement('span');nameEl.className='item-name';
+  nameEl.contentEditable=editMode?'true':'false';nameEl.textContent=it.name;
+  if(editMode){nameEl.onblur=()=>saveItemName(sk,ik,nameEl);nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};}
   r1.appendChild(nameEl);
 
   const bw=document.createElement('div');bw.className='item-badge-wrap';
   const b=document.createElement('span');b.className='tag-badge '+(tagCls||'tb-none');
-  b.textContent=tagLbl||'ללא תג';b.title='לחצי לשינוי תג';b.onclick=()=>cycleTag(sk,ik);
+  b.textContent=tagLbl||'ללא תג';
+  if(editMode){b.title='לחצי לשינוי תג';b.onclick=()=>cycleTag(sk,ik);}
   bw.appendChild(b);r1.appendChild(bw);
 
-  const db2=document.createElement('button');db2.className='del-btn';db2.title='מחק';db2.textContent='🗑';
-  db2.onclick=()=>deleteItem(sk,ik);r1.appendChild(db2);
+  if(editMode){
+    const db2=document.createElement('button');db2.className='del-btn';db2.title='מחק';db2.textContent='🗑';
+    db2.onclick=()=>deleteItem(sk,ik);r1.appendChild(db2);
+  }
   el.appendChild(r1);
 
-  const tipEl=document.createElement('div');tipEl.className='item-tip';tipEl.contentEditable='true';tipEl.textContent=it.tip||'';
-  tipEl.onblur=()=>saveItemTip(sk,ik,tipEl);
-  tipEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();tipEl.blur();}};
+  const tipEl=document.createElement('div');tipEl.className='item-tip';
+  tipEl.contentEditable=editMode?'true':'false';tipEl.textContent=it.tip||'';
+  if(editMode){tipEl.onblur=()=>saveItemTip(sk,ik,tipEl);tipEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();tipEl.blur();}};}
+  if(!editMode&&!it.tip)tipEl.style.display='none';
   el.appendChild(tipEl);
 
-  const srow=document.createElement('div');srow.className='status-row';
-  [['none','לא נקנה'],['have','יש לנו'],['loaned','הושאל'],['bought','נקנה']].forEach(([s,lbl])=>{
-    const btn=document.createElement('button');btn.className='sp'+(st===s?' sp-on-'+s:'');
-    btn.textContent=lbl;btn.onclick=()=>setStatus(sk,ik,s);srow.appendChild(btn);
-  });
-  el.appendChild(srow);
+  if(editMode){
+    const srow=document.createElement('div');srow.className='status-row';
+    [['none','לא נקנה'],['have','יש לנו'],['loaned','הושאל'],['bought','נקנה']].forEach(([s,lbl])=>{
+      const btn=document.createElement('button');btn.className='sp'+(st===s?' sp-on-'+s:'');
+      btn.textContent=lbl;btn.onclick=()=>setStatus(sk,ik,s);srow.appendChild(btn);
+    });
+    el.appendChild(srow);
+  }
 
   if(st==='loaned'){
     const ctx=document.createElement('div');ctx.className='ctx-field';
@@ -777,25 +806,36 @@ function buildItemEl(sk,ik,it){
     el.appendChild(ctx);
   }
 
-  const noteWrap=document.createElement('div');noteWrap.className='note-wrap';
-  const noteToggle=document.createElement('button');noteToggle.className='note-toggle'+(hasNote?' has-note':'');
-  noteToggle.dataset.ntoggle=sk+':'+ik;noteToggle.textContent=hasNote?'💬 הערה ▾':'💬 הוסיפי הערה';
-  noteToggle.onclick=()=>toggleNote(sk,ik);noteWrap.appendChild(noteToggle);
-  const noteTa=document.createElement('textarea');noteTa.className='note-ta'+(hasNote?' open':'');
-  noteTa.dataset.note=sk+':'+ik;noteTa.placeholder='הוסיפי הערה...';noteTa.value=it.note||'';
-  noteTa.onchange=()=>saveNote(sk,ik,noteTa);noteTa.oninput=()=>autoGrow(noteTa);
-  noteWrap.appendChild(noteTa);el.appendChild(noteWrap);
-  if(hasNote)setTimeout(()=>autoGrow(noteTa),0);
+  if(hasNote||editMode){
+    const noteWrap=document.createElement('div');noteWrap.className='note-wrap';
+    const noteToggle=document.createElement('button');noteToggle.className='note-toggle'+(hasNote?' has-note':'');
+    noteToggle.dataset.ntoggle=sk+':'+ik;noteToggle.textContent=hasNote?'💬 הערה ▾':'💬 הוסיפי הערה';
+    noteToggle.onclick=()=>toggleNote(sk,ik);noteWrap.appendChild(noteToggle);
+    const noteTa=document.createElement('textarea');noteTa.className='note-ta'+(hasNote?' open':'');
+    noteTa.dataset.note=sk+':'+ik;noteTa.placeholder='הוסיפי הערה...';noteTa.value=it.note||'';
+    noteTa.readOnly=!editMode;
+    if(editMode){noteTa.onchange=()=>saveNote(sk,ik,noteTa);noteTa.oninput=()=>autoGrow(noteTa);}
+    noteWrap.appendChild(noteTa);el.appendChild(noteWrap);
+    if(hasNote)setTimeout(()=>autoGrow(noteTa),0);
+  }
 
-  const recsSection=document.createElement('div');recsSection.className='recs-section';
-  const recToggle=document.createElement('button');recToggle.className='recs-toggle'+(recCount?' has-recs':'');
-  recToggle.dataset.rtoggle=sk+':'+ik;recToggle.textContent=recCount?'📌 המלצות ('+recCount+') ▾':'📌 הוסיפי המלצה';
-  recToggle.onclick=()=>toggleRecs(sk,ik);recsSection.appendChild(recToggle);
-  const recsBody=document.createElement('div');recsBody.className='recs-body';recsBody.dataset.recs=sk+':'+ik;
-  Object.keys(recs).forEach(rk=>recsBody.appendChild(buildRecRow(sk,ik,rk,recs[rk]||'')));
-  const addRecBtn=document.createElement('button');addRecBtn.className='add-rec-btn';addRecBtn.textContent='+ הוסיפי המלצה';
-  addRecBtn.onclick=()=>addRec(sk,ik);recsBody.appendChild(addRecBtn);
-  recsSection.appendChild(recsBody);el.appendChild(recsSection);
+  if(recCount||editMode){
+    const recsSection=document.createElement('div');recsSection.className='recs-section';
+    const recToggle=document.createElement('button');recToggle.className='recs-toggle'+(recCount?' has-recs':'');
+    recToggle.dataset.rtoggle=sk+':'+ik;recToggle.textContent=recCount?'📌 המלצות ('+recCount+') ▾':'📌 הוסיפי המלצה';
+    recToggle.onclick=()=>toggleRecs(sk,ik);recsSection.appendChild(recToggle);
+    const recsBody=document.createElement('div');recsBody.className='recs-body';recsBody.dataset.recs=sk+':'+ik;
+    Object.keys(recs).forEach(rk=>{
+      const row=buildRecRow(sk,ik,rk,recs[rk]||'');
+      if(!editMode){row.querySelector('.rec-del')?.remove();const inp=row.querySelector('.rec-inp');if(inp)inp.readOnly=true;}
+      recsBody.appendChild(row);
+    });
+    if(editMode){
+      const addRecBtn=document.createElement('button');addRecBtn.className='add-rec-btn';addRecBtn.textContent='+ הוסיפי המלצה';
+      addRecBtn.onclick=()=>addRec(sk,ik);recsBody.appendChild(addRecBtn);
+    }
+    recsSection.appendChild(recsBody);el.appendChild(recsSection);
+  }
 
   return el;
 }
@@ -820,12 +860,8 @@ function render(){
     const head=document.createElement('div');head.className='sec-head open';
     head.onclick=e=>{if(!e.target.isContentEditable)toggleSec(head);};
     const[icon,titleOnly]=extractSectionIcon(sec.title);
-    head.innerHTML='<span class="sec-icon" contenteditable="true" title="לחצי לעריכת האימוג׳י"'+
-        ' onblur="saveSectionIcon(\''+esc(sk)+'\',this)"'+
-        ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.blur()}">'+(icon||'📋')+'</span>'+
-      '<span class="sec-title" contenteditable="true"'+
-        ' onblur="saveSectionTitle(\''+esc(sk)+'\',this)"'+
-        ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur()}">'+esc(titleOnly||sec.title)+'</span>'+
+    head.innerHTML='<span class="sec-icon" contenteditable="'+editMode+'"'+(editMode?' title="לחצי לעריכת האימוג׳י" onblur="saveSectionIcon(\''+esc(sk)+'\',this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.blur()}"':'')+'>'+( icon||'📋')+'</span>'+
+      '<span class="sec-title" contenteditable="'+editMode+'"'+(editMode?' onblur="saveSectionTitle(\''+esc(sk)+'\',this)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur()}"':'')+'>'+esc(titleOnly||sec.title)+'</span>'+
       (pct===100?'<span class="sec-complete-badge">✓ הושלם</span>':'')+
       '<div class="sec-meta"><span class="sec-count">'+done+'/'+total+'</span>'+
         '<span class="sec-mini-prog"><span class="sec-mini-fill" style="width:'+pct+'%"></span></span></div>'+
