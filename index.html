@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>רשימת לידה 🎀 תמר ומתן</title>
+<title>The Baby List 🎀</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="רשימת לידה">
+<meta name="apple-mobile-web-app-title" content="The Baby List">
 <meta name="theme-color" content="#C0476E">
 <link rel="apple-touch-icon" id="pwa-icon" href="">
 <link rel="manifest" id="pwa-manifest">
@@ -216,6 +216,29 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
 .sec-complete-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0E5030;background:#C4ECDA;padding:2px 9px;border-radius:12px;margin-right:6px;animation:popIn .3s cubic-bezier(.17,.67,.35,1.3);}
 @keyframes popIn{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
 
+/* ════ PIN MODAL ════ */
+#pin-modal{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;}
+#pin-modal.open{display:flex;}
+.pin-overlay{position:absolute;inset:0;background:rgba(26,16,21,.55);backdrop-filter:blur(6px);}
+.pin-card{position:relative;background:#fff;border-radius:28px;padding:36px 28px 24px;width:300px;
+  box-shadow:0 32px 80px rgba(0,0,0,.25);animation:popIn .25s cubic-bezier(.17,.67,.35,1.3);text-align:center;}
+.pin-emoji{font-size:48px;line-height:1;margin-bottom:12px;}
+.pin-title{font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.pin-sub{font-size:13px;color:var(--text2);margin-bottom:20px;}
+.pin-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:14px;
+  font-size:26px;font-family:var(--ff);text-align:center;outline:none;letter-spacing:10px;
+  margin-bottom:14px;transition:border-color .2s;background:#fdf8fa;color:var(--text);}
+.pin-input:focus{border-color:var(--rose);background:#fff;}
+.pin-input.error{border-color:#e74c3c;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-9px);}40%,80%{transform:translateX(9px);}}
+.pin-submit{width:100%;padding:14px;background:linear-gradient(135deg,var(--rose),var(--rose2));
+  color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:var(--ff);transition:all .2s;margin-bottom:10px;}
+.pin-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(192,71,110,.4);}
+.pin-cancel{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);font-family:var(--ff);padding:4px 12px;}
+.pin-cancel:hover{color:var(--text2);}
+.pin-err{font-size:12px;color:#e74c3c;margin-bottom:8px;min-height:16px;font-weight:600;}
+
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1015;color:#fff;font-size:13px;padding:11px 24px;border-radius:22px;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:500;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.25);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -259,7 +282,7 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
 <div id="app" style="display:none">
   <div id="app-header">
     <div class="hdr-row1">
-      <div><div class="hdr-title">רשימת לידה 🎀</div><div class="hdr-subtitle">תמר ומתן</div></div>
+      <div><div class="hdr-title">The Baby List 🎀</div><div class="hdr-subtitle">תמר ומתן</div></div>
       <div class="hdr-chips">
         <span class="due-chip" id="due-chip" onclick="editDueDate()">⏳ ...</span>
         <div class="sync-chip" id="sync-chip"><span class="sdot" id="sdot"></span><span id="sync-lbl">מסונכרן</span></div>
@@ -311,6 +334,19 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
   </div>
 </div>
 
+<div id="pin-modal">
+  <div class="pin-overlay" onclick="closePinModal()"></div>
+  <div class="pin-card">
+    <div class="pin-emoji">🔓</div>
+    <div class="pin-title">מצב עריכה</div>
+    <div class="pin-sub">הכניסי את קוד העריכה</div>
+    <div class="pin-err" id="pin-err"></div>
+    <input type="password" class="pin-input" id="pin-input" maxlength="8" inputmode="numeric" placeholder="••••"
+      onkeydown="if(event.key==='Enter')submitPin()">
+    <button class="pin-submit" onclick="submitPin()">כניסה ✓</button>
+    <button class="pin-cancel" onclick="closePinModal()">ביטול</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -438,7 +474,8 @@ const DEFAULTS = [
   ]}
 ];
 
-let db=null,state={},_skip=false,activeFilter='all',searchQ='',activeSectionFilter=null,activeTagFilter='all';
+let db=null,state={},_skip=false,searchQ='';
+let activeStatuses=new Set(), activeTags=new Set(), activeSections=new Set();
 let editMode=localStorage.getItem('baby_edit')===EDIT_PIN;
 const prevSecPct={};
 
@@ -447,14 +484,27 @@ function toggleEditMode(){
     editMode=false;localStorage.removeItem('baby_edit');
     updateLockBtn();render();toast('מצב צפייה בלבד 🔒');
   } else {
-    const pin=prompt('הכניסי קוד עריכה:');
-    if(pin===null)return;
-    if(pin===EDIT_PIN){
-      editMode=true;localStorage.setItem('baby_edit',EDIT_PIN);
-      updateLockBtn();render();toast('מצב עריכה פעיל ✏️');
-    } else {
-      toast('קוד שגוי ❌');
-    }
+    openPinModal();
+  }
+}
+function openPinModal(){
+  const m=document.getElementById('pin-modal');
+  const inp=document.getElementById('pin-input');
+  const err=document.getElementById('pin-err');
+  m.classList.add('open');inp.value='';err.textContent='';
+  setTimeout(()=>inp.focus(),150);
+}
+function closePinModal(){document.getElementById('pin-modal').classList.remove('open');}
+function submitPin(){
+  const inp=document.getElementById('pin-input');
+  const err=document.getElementById('pin-err');
+  if(inp.value===EDIT_PIN){
+    editMode=true;localStorage.setItem('baby_edit',EDIT_PIN);
+    closePinModal();updateLockBtn();render();toast('מצב עריכה פעיל ✏️');
+  } else {
+    err.textContent='קוד שגוי, נסי שוב';
+    inp.classList.add('error');inp.value='';
+    setTimeout(()=>{inp.classList.remove('error');inp.focus();},400);
   }
 }
 function updateLockBtn(){
@@ -473,7 +523,7 @@ function generatePWAIcon(){
     ctx.fillText('🎀',90,97);
     const data=c.toDataURL('image/png');
     const il=document.getElementById('pwa-icon');if(il)il.href=data;
-    const manifest={name:'רשימת לידה — תמר ומתן',short_name:'רשימת לידה',start_url:'.',
+    const manifest={name:'The Baby List 🎀',short_name:'The Baby List',start_url:'.',
       display:'standalone',background_color:'#F5EFF0',theme_color:'#C0476E',lang:'he',dir:'rtl',
       icons:[{src:data,sizes:'180x180',type:'image/png'}]};
     const ml=document.getElementById('pwa-manifest');
@@ -666,44 +716,57 @@ function deleteItem(sk,ik){
 }
 
 function setFilter(f){
-  activeFilter=f;
-  document.querySelectorAll('#status-filters .fl').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  render();
+  if(f==='all'){activeStatuses.clear();}
+  else if(f==='done'){activeStatuses.clear();['have','loaned','bought'].forEach(s=>activeStatuses.add(s));}
+  else if(f==='todo'){activeStatuses.clear();activeStatuses.add('none');}
+  else{activeStatuses.has(f)?activeStatuses.delete(f):activeStatuses.add(f);}
+  updateStatusFilterBtns();render();
+}
+function updateStatusFilterBtns(){
+  document.querySelectorAll('#status-filters .fl').forEach(b=>{
+    const f=b.dataset.f;
+    if(f==='all') b.classList.toggle('on',activeStatuses.size===0);
+    else if(f==='done') b.classList.toggle('on',activeStatuses.size===3&&['have','loaned','bought'].every(s=>activeStatuses.has(s)));
+    else if(f==='todo') b.classList.toggle('on',activeStatuses.size===1&&activeStatuses.has('none'));
+    else b.classList.toggle('on',activeStatuses.has(f));
+  });
 }
 function onSearch(val){searchQ=val.trim().toLowerCase();render();}
 function setTagFilter(tag){
-  activeTagFilter=tag;
-  document.querySelectorAll('#tag-filters .fl').forEach(b=>b.classList.toggle('on',b.dataset.tag===tag));
+  if(tag==='all'){activeTags.clear();}
+  else{activeTags.has(tag)?activeTags.delete(tag):activeTags.add(tag);}
+  document.querySelectorAll('#tag-filters .fl').forEach(b=>{
+    const t=b.dataset.tag;
+    b.classList.toggle('on',t==='all'?activeTags.size===0:activeTags.has(t));
+  });
   render();
 }
 function matchesFilter(it){
   const st=getStatus(it),q=searchQ;
   if(q&&!(it.name||'').toLowerCase().includes(q)&&!(it.tip||'').toLowerCase().includes(q)&&
      !Object.values(it.recs||{}).some(r=>(r||'').toLowerCase().includes(q)))return false;
-  if(activeTagFilter!=='all'&&(it.tag||'')!==activeTagFilter)return false;
-  if(activeFilter==='all')return true;
-  if(activeFilter==='done')return st!=='none';
-  if(activeFilter==='todo')return st==='none';
-  return st===activeFilter;
+  if(activeTags.size>0&&!activeTags.has(it.tag||''))return false;
+  if(activeStatuses.size>0&&!activeStatuses.has(st))return false;
+  return true;
 }
 function buildSecFilters(){
   const bar=document.getElementById('sec-filters');bar.innerHTML='';
   const allBtn=document.createElement('button');allBtn.className='fl f-sec-all on';allBtn.dataset.sk='all';
-  allBtn.textContent='הכל';allBtn.onclick=()=>{activeSectionFilter=null;updateSecFilterBtns();render();};
+  allBtn.textContent='הכל';allBtn.onclick=()=>{activeSections.clear();updateSecFilterBtns();render();};
   bar.appendChild(allBtn);
   Object.keys(state).filter(k=>k!=='_meta').sort((a,b)=>(state[a].order||0)-(state[b].order||0)).forEach(sk=>{
     const sec=state[sk];if(!sec)return;
     const[ico]=extractSectionIcon(sec.title);
     const btn=document.createElement('button');btn.className='fl';btn.dataset.sk=sk;
     btn.title=sec.title;btn.textContent=ico||'📋';
-    btn.onclick=()=>{activeSectionFilter=(activeSectionFilter===sk?null:sk);updateSecFilterBtns();render();};
+    btn.onclick=()=>{activeSections.has(sk)?activeSections.delete(sk):activeSections.add(sk);updateSecFilterBtns();render();};
     bar.appendChild(btn);
   });
 }
 function updateSecFilterBtns(){
   document.querySelectorAll('#sec-filters .fl').forEach(b=>{
     const isAll=b.dataset.sk==='all';
-    const isActive=isAll?!activeSectionFilter:b.dataset.sk===activeSectionFilter;
+    const isActive=isAll?activeSections.size===0:activeSections.has(b.dataset.sk);
     b.classList.toggle('on',isActive);
     b.classList.toggle('f-sec',isActive&&!isAll);
     b.classList.toggle('f-sec-all',isActive&&isAll);
@@ -846,7 +909,7 @@ function render(){
   const sKeys=Object.keys(state).filter(k=>k!=='_meta').sort((a,b)=>(state[a].order||0)-(state[b].order||0));
   let anyVisible=false;
   sKeys.forEach(sk=>{
-    if(activeSectionFilter&&activeSectionFilter!==sk)return;
+    if(activeSections.size>0&&!activeSections.has(sk))return;
     const sec=state[sk];if(!sec||!sec.items)return;
     const iKeys=Object.keys(sec.items);
     const visible=iKeys.filter(k=>matchesFilter(sec.items[k]));
@@ -857,8 +920,10 @@ function render(){
     const pct=total?Math.round(done/total*100):0;
 
     const secEl=document.createElement('div');secEl.className='sec c-'+(sec.color||'gray');secEl.id='sec-'+sk;
-    const head=document.createElement('div');head.className='sec-head open';
-    head.onclick=e=>{if(!e.target.isContentEditable)toggleSec(head);};
+    const head=document.createElement('div');
+    const isOpen=localStorage.getItem('sec_open_'+sk)==='1';
+    head.className='sec-head'+(isOpen?' open':'');
+    head.onclick=e=>{if(!e.target.isContentEditable)toggleSec(head,sk);};
     const[icon,titleOnly]=extractSectionIcon(sec.title);
     head.innerHTML='<span class="sec-icon" contenteditable="'+editMode+'"'+(editMode?' title="לחצי לעריכת האימוג׳י" onblur="saveSectionIcon(\''+esc(sk)+'\',this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.blur()}"':'')+'>'+( icon||'📋')+'</span>'+
       '<span class="sec-title" contenteditable="'+editMode+'"'+(editMode?' onblur="saveSectionTitle(\''+esc(sk)+'\',this)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur()}"':'')+'>'+esc(titleOnly||sec.title)+'</span>'+
@@ -866,10 +931,10 @@ function render(){
       '<div class="sec-meta"><span class="sec-count">'+done+'/'+total+'</span>'+
         '<span class="sec-mini-prog"><span class="sec-mini-fill" style="width:'+pct+'%"></span></span></div>'+
       '<span class="caret">▼</span>';
-    const body=document.createElement('div');body.className='sec-body open';
+    const body=document.createElement('div');body.className='sec-body'+(isOpen?' open':'');
     visible.sort((a,b)=>(getStatus(sec.items[a])==='none'?0:1)-(getStatus(sec.items[b])==='none'?0:1))
       .forEach(ik=>{if(sec.items[ik])body.appendChild(buildItemEl(sk,ik,sec.items[ik]));});
-    if(activeFilter==='all'&&!searchQ&&!activeSectionFilter&&activeTagFilter==='all'){
+    if(editMode&&activeStatuses.size===0&&!searchQ&&activeSections.size===0&&activeTags.size===0){
       const addRow=document.createElement('div');addRow.className='add-row';
       addRow.innerHTML='<button class="add-btn" onclick="addItem(\''+esc(sk)+'\')">+ הוסף פריט</button>';
       body.appendChild(addRow);
@@ -880,7 +945,10 @@ function render(){
   updateProgress();updateDue();
 }
 
-function toggleSec(h){h.classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+function toggleSec(h,sk){
+  h.classList.toggle('open');h.nextElementSibling.classList.toggle('open');
+  if(sk)localStorage.setItem('sec_open_'+sk,h.classList.contains('open')?'1':'0');
+}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function autoGrow(el){el.style.height='auto';el.style.height=Math.max(36,el.scrollHeight)+'px';}
 function updateProgress(){
