@@ -516,9 +516,10 @@ function generatePWAIcon(){
   try{
     const c=document.createElement('canvas');c.width=c.height=180;
     const ctx=c.getContext('2d');
-    const g=ctx.createLinearGradient(0,0,180,180);
-    g.addColorStop(0,'#D04070');g.addColorStop(1,'#A03060');
-    ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(0,0,180,180,38);ctx.fill();
+    ctx.fillStyle='#FFFFFF';
+    ctx.beginPath();ctx.roundRect(0,0,180,180,38);ctx.fill();
+    ctx.strokeStyle='#F0B8CA';ctx.lineWidth=8;
+    ctx.beginPath();ctx.roundRect(5,5,170,170,34);ctx.stroke();
     ctx.font='95px serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText('🎀',90,97);
     const data=c.toDataURL('image/png');
