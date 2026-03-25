@@ -1,24 +1,896 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.4">
-  <style type="text/css">
-    body {background-color: #f2ebec}
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #140d11; -webkit-text-stroke: #140d11; min-height: 15.0px}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Arial Hebrew'; color: #57424d; -webkit-text-stroke: #57424d}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #140d11; min-height: 16.0px}
-    span.s1 {font-kerning: none}
-    span.s2 {font-kerning: none; background-color: #f2ebec}
-    span.s3 {font: 14.0px 'Helvetica Neue'; font-kerning: none; background-color: #f2ebec}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>רשימת לידה 🎀 תמר ומתן</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="רשימת לידה">
+<meta name="theme-color" content="#C0476E">
+<link rel="apple-touch-icon" id="pwa-icon" href="">
+<link rel="manifest" id="pwa-manifest">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+
+:root{
+  --bg:#F5EFF0;--card:#FFFFFF;--border:#E2D6DA;--border2:#D4C8CE;
+  --text:#1A1015;--text2:#6B5560;--text3:#AE9FA8;
+  --rose:#C0476E;--rose2:#9E2F57;--rose-bg:#FBEDF3;--rose-pale:#F9E4ED;
+  --sage:#3A7D5E;--sage-bg:#E4F5ED;
+  --sky:#3A68A8;--sky-bg:#E4EEFF;
+  --none-col:#6B5560;--none-bg:#F0ECF2;
+  --have-col:#2E6B45;--have-bg:#E0F5E8;
+  --r:14px;--rs:9px;
+  --sh:0 2px 12px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  --sh-lg:0 8px 32px rgba(0,0,0,.12);
+  --ff:'Heebo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--ff);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#f9dce8 0%,var(--bg) 60%);}
+.setup-card{max-width:520px;width:100%;background:var(--card);border-radius:22px;padding:32px;box-shadow:var(--sh-lg);}
+.setup-card h2{font-size:24px;font-weight:900;margin-bottom:6px;}
+.setup-card .sub{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:20px;}
+.steps{list-style:none;counter-reset:s;margin-bottom:20px;}
+.steps li{counter-increment:s;padding:9px 36px 9px 0;position:relative;font-size:13px;border-bottom:1px solid var(--border);line-height:1.6;}
+.steps li:last-child{border-bottom:none;}
+.steps li::before{content:counter(s);position:absolute;right:0;top:9px;width:24px;height:24px;background:var(--rose);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.steps li a{color:var(--rose);}
+.steps code{background:var(--rose-bg);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;color:var(--rose2);}
+.cfg-area{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:monospace;outline:none;margin-bottom:10px;direction:ltr;text-align:left;min-height:90px;resize:vertical;background:#fbf8fa;transition:border-color .2s;}
+.cfg-area:focus{border-color:var(--rose);}
+.setup-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--rose),var(--rose2));color:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--ff);transition:all .2s;}
+.setup-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(192,71,110,.4);}
+.setup-note{margin-top:10px;font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
+.setup-err{color:#c0392b;font-size:12px;margin-bottom:8px;display:none;padding:8px 12px;background:#fde8e8;border-radius:8px;}
+
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;}
+.spinner{width:36px;height:36px;border:3px solid #f0d0dc;border-top-color:var(--rose);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading p{font-size:14px;color:var(--text2);}
+
+#app-header{background:linear-gradient(145deg,#B03060 0%,#C0476E 40%,#D4607E 100%);padding:18px 18px 0;position:sticky;top:0;z-index:200;box-shadow:0 4px 24px rgba(160,40,80,.3);}
+.hdr-row1{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.hdr-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.3px;flex:1;line-height:1.1;}
+.hdr-subtitle{font-size:12px;color:rgba(255,255,255,.65);font-weight:300;}
+.hdr-chips{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.due-chip{background:rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.3);cursor:pointer;transition:background .2s;white-space:nowrap;}
+.due-chip:hover{background:rgba(255,255,255,.3);}
+.sync-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.2);}
+.sync-chip.error{background:rgba(255,80,80,.3);}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.8);}
+.sync-chip.saving .sdot{animation:blink .8s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.tools-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:14px;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;}
+.tools-btn:hover{background:rgba(255,255,255,.28);}
+.hdr-stats{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+.stat-chip{background:rgba(255,255,255,.15);border-radius:12px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.9);white-space:nowrap;border:1px solid rgba(255,255,255,.15);}
+.stat-chip strong{font-weight:700;margin-left:3px;}
+.hdr-prog{padding:6px 0 14px;}
+.prog-nums{display:flex;justify-content:space-between;margin-bottom:5px;}
+.prog-n{font-size:12px;color:rgba(255,255,255,.75);}
+.prog-track{height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;}
+.prog-bar2{height:100%;background:#fff;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+
+#tools-menu{position:fixed;top:0;right:0;bottom:0;left:0;z-index:300;display:none;}
+#tools-menu.open{display:block;}
+.tools-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);}
+.tools-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;padding:24px;width:280px;box-shadow:var(--sh-lg);}
+.tools-panel h3{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
+.tool-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;transition:background .15s;border:1px solid var(--border);margin-bottom:8px;}
+.tool-item:hover{background:var(--rose-bg);}
+.tool-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0;}
+.tool-text{flex:1;}
+.tool-title{font-size:14px;font-weight:600;}
+.tool-desc{font-size:11px;color:var(--text2);margin-top:1px;}
+.tools-close{width:100%;padding:10px;background:var(--bg);border:none;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text2);font-family:var(--ff);margin-top:4px;}
+
+#filter-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 14px;position:sticky;z-index:190;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.search-row{margin-bottom:8px;}
+.search-inp{width:100%;padding:8px 14px;border:1.5px solid var(--border);border-radius:22px;font-size:14px;font-family:var(--ff);outline:none;background:var(--bg);color:var(--text);transition:border-color .2s;}
+.search-inp:focus{border-color:var(--rose);background:#fff;}
+.filt-row{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
+.filt-row::-webkit-scrollbar{display:none;}
+.filt-row+.filt-row{margin-top:7px;}
+.fl{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;white-space:nowrap;transition:all .18s;background:var(--card);color:var(--text2);font-family:var(--ff);}
+.fl:hover{border-color:var(--rose);color:var(--rose);}
+.fl.on{border-color:transparent;box-shadow:0 1px 6px rgba(0,0,0,.12);}
+.fl.on.f-all,.fl.on.f-done,.fl.on.f-sec-all,.fl.on.f-tag-all{background:#1A1015;color:#fff;}
+.fl.on.f-todo,.fl.on.f-none{background:var(--none-bg);color:var(--none-col);border-color:var(--border2);}
+.fl.on.f-have{background:var(--have-bg);color:var(--have-col);border-color:var(--have-col);}
+.fl.on.f-loaned{background:var(--sky-bg);color:var(--sky);border-color:var(--sky);}
+.fl.on.f-bought{background:var(--sage-bg);color:var(--sage);border-color:var(--sage);}
+.fl.on.f-sec{background:var(--rose-bg);color:var(--rose);border-color:var(--rose);}
+.fl.on.f-tag-must{background:#FDEAEA;color:#B02020;border-color:#E08080;}
+.fl.on.f-tag-wait{background:#FEF4D6;color:#8A5E00;border-color:#D4A020;}
+.fl.on.f-tag-gift{background:#E4F4E4;color:#2A7A2A;border-color:#60B060;}
+.fl.on.f-tag-hosp{background:#DCF0FC;color:#1A5FA0;border-color:#60A0D0;}
+.fl-div{width:1px;background:var(--border);flex-shrink:0;align-self:stretch;margin:0 3px;}
+
+main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
+.empty-msg{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;line-height:2;}
+
+.sec{margin-bottom:12px;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);background:var(--card);}
+.sec-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none;border-right:4px solid transparent;transition:background .15s,border-color .2s;}
+.sec-head:hover{background:#fdf8fa;}
+.sec-head.open{border-right-color:var(--rose);}
+.c-pink .sec-head.open{border-right-color:#D06080;}
+.c-blue .sec-head.open{border-right-color:#4A7AB8;}
+.c-teal .sec-head.open{border-right-color:#3A9070;}
+.c-amber .sec-head.open{border-right-color:#C87820;}
+.c-purple .sec-head.open{border-right-color:#7060D0;}
+.c-green .sec-head.open{border-right-color:#5A9040;}
+.c-coral .sec-head.open{border-right-color:#D05840;}
+.c-rose .sec-head.open{border-right-color:#C0406A;}
+.c-gray .sec-head.open{border-right-color:#808080;}
+.sec-icon{font-size:22px;flex-shrink:0;width:30px;text-align:center;cursor:pointer;border-radius:6px;padding:2px 4px;margin:-2px -4px;transition:background .15s;}
+.sec-icon:hover{background:rgba(192,71,110,.12);}
+.sec-icon[contenteditable]:focus{background:rgba(192,71,110,.15);outline:2px solid var(--rose);border-radius:6px;}
+.sec-title{font-size:15px;font-weight:700;flex:1;outline:none;border-radius:4px;padding:2px 5px;margin:-2px -5px;transition:background .15s;}
+.sec-title:focus{background:rgba(192,71,110,.08);outline:2px solid var(--rose);}
+.sec-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sec-count{font-size:12px;color:var(--text2);font-weight:500;}
+.sec-mini-prog{width:40px;height:4px;background:#F0E4EC;border-radius:2px;overflow:hidden;}
+.sec-mini-fill{height:100%;background:var(--rose);border-radius:2px;transition:width .3s;}
+.caret{font-size:10px;color:var(--text3);transition:transform .22s;}
+.sec-head.open .caret{transform:rotate(180deg);}
+.sec-body{display:none;}
+.sec-body.open{display:block;}
+
+.item{padding:13px 16px;border-top:1px solid #F0EAF0;transition:background .15s;}
+.item:hover{background:#fdf9fb;}
+.item.st-have{background:linear-gradient(to left,#f3fcf5,#fff);}
+.item.st-bought{background:linear-gradient(to left,#f2fbf6,#fff);}
+.item.st-loaned{background:linear-gradient(to left,#f3f8fe,#fff);}
+.item-row1{display:flex;align-items:flex-start;gap:8px;margin-bottom:3px;}
+.item-name{font-size:14px;font-weight:600;flex:1;line-height:1.45;outline:none;border-radius:5px;padding:2px 5px;margin:-2px -5px;transition:background .15s;word-break:break-word;}
+.item-name:focus{background:#FFF8E0;outline:2px solid #D4A020;}
+.item.st-bought .item-name{text-decoration:line-through;color:var(--text3);}
+.item-badge-wrap{flex-shrink:0;}
+.tag-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;white-space:nowrap;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.tag-badge:hover{transform:scale(1.07);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.tag-badge:active{transform:scale(.97);}
+.tb-must{background:#FDEAEA;color:#B02020;}
+.tb-wait{background:#FEF4D6;color:#8A5E00;}
+.tb-gift{background:#E4F4E4;color:#2A7A2A;}
+.tb-hosp{background:#DCF0FC;color:#1A5FA0;}
+.tb-loan{background:#ECE8FE;color:#4A3DB5;}
+.tb-none{background:#F0ECF2;color:#9A8AA0;}
+.del-btn{background:none;border:none;font-size:13px;cursor:pointer;color:var(--text3);padding:4px 5px;border-radius:6px;opacity:0;transition:all .15s;flex-shrink:0;}
+.item:hover .del-btn{opacity:.5;}
+.del-btn:hover{opacity:1!important;color:#c0392b!important;background:#fde8e8!important;}
+.item-tip{font-size:12px;color:var(--text2);line-height:1.5;outline:none;border-radius:4px;padding:1px 5px;margin:-1px -5px;font-style:italic;display:block;transition:background .15s;min-height:16px;}
+.item-tip:empty::before{content:'הוסיפי טיפ...';color:var(--text3);}
+.item-tip:focus{background:#F8F0FF;outline:2px solid #C8A8E8;font-style:normal;}
+
+.status-row{display:flex;align-items:center;margin-top:10px;border-radius:22px;background:#F2ECF5;padding:3px;width:fit-content;border:1px solid #E0D4E8;}
+.sp{font-size:11px;font-weight:600;padding:5px 11px;border-radius:18px;border:none;cursor:pointer;font-family:var(--ff);transition:all .2s;color:var(--text2);background:transparent;white-space:nowrap;}
+.sp:hover:not([class*="sp-on"]){background:rgba(192,71,110,.08);color:var(--rose);}
+.sp-on-none{background:#fff;color:#4A3A4E;box-shadow:0 1px 6px rgba(0,0,0,.12);}
+.sp-on-have{background:#D0F0E0;color:#1A6038;box-shadow:0 1px 6px rgba(26,96,56,.15);}
+.sp-on-loaned{background:#D4E8FC;color:#1A4898;box-shadow:0 1px 6px rgba(26,72,152,.15);}
+.sp-on-bought{background:#C4ECDA;color:#0E5030;box-shadow:0 1px 6px rgba(14,80,48,.18);}
+
+.ctx-field{display:flex;align-items:center;gap:8px;margin-top:8px;animation:slideIn .18s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.ctx-lbl{font-size:12px;color:var(--text2);white-space:nowrap;font-weight:600;}
+.ctx-inp{flex:1;min-width:0;font-size:13px;padding:5px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;font-family:var(--ff);transition:border-color .2s;}
+.ctx-inp:focus{border-color:var(--rose);}
+.ctx-inp.price{max-width:110px;}
+.ctx-sym{font-size:13px;color:var(--text2);font-weight:600;}
+
+.note-wrap{margin-top:8px;}
+.note-toggle{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:1px 0;font-family:var(--ff);transition:color .15s;}
+.note-toggle:hover{color:var(--rose);}
+.note-toggle.has-note{color:var(--text2);font-weight:500;}
+.note-ta{width:100%;font-size:13px;padding:7px 10px;border:1.5px solid #E8DDE8;border-radius:9px;background:#FBF8FC;color:var(--text);outline:none;resize:none;min-height:36px;font-family:var(--ff);line-height:1.5;display:none;margin-top:5px;transition:border-color .2s;}
+.note-ta.open{display:block;}
+.note-ta:focus{border-color:var(--rose);background:#fff;}
+.note-ta::placeholder{color:var(--text3);}
+
+.recs-section{margin-top:8px;}
+.recs-toggle{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:1px 0;font-family:var(--ff);font-weight:500;transition:color .15s;}
+.recs-toggle:hover{color:var(--rose);}
+.recs-toggle.has-recs{color:var(--text2);}
+.recs-body{margin-top:7px;display:none;}
+.recs-body.open{display:block;}
+.rec-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.rec-inp{flex:1;min-width:0;font-size:13px;padding:5px 10px;border:1.5px solid #E8DDE8;border-radius:8px;background:#FAF6F9;color:var(--text);outline:none;font-family:var(--ff);transition:all .2s;}
+.rec-inp:focus{border-color:var(--rose);background:#fff;}
+.rec-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:17px;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0;}
+.rec-del:hover{color:#c0392b;background:#fde8e8;}
+.add-rec-btn{font-size:12px;color:var(--rose);background:none;border:1.5px dashed #E8C8D8;cursor:pointer;padding:5px 12px;border-radius:18px;font-family:var(--ff);font-weight:500;transition:all .2s;width:100%;margin-top:2px;}
+.add-rec-btn:hover{background:var(--rose-bg);border-color:var(--rose);}
+
+.add-row{padding:10px 16px;border-top:1px dashed #E8DDE8;background:#FBF7FA;}
+.add-btn{font-size:13px;color:var(--rose);background:none;border:none;cursor:pointer;font-family:var(--ff);font-weight:600;transition:color .15s;}
+.add-btn:hover{color:var(--rose2);}
+
+.sec-complete-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0E5030;background:#C4ECDA;padding:2px 9px;border-radius:12px;margin-right:6px;animation:popIn .3s cubic-bezier(.17,.67,.35,1.3);}
+@keyframes popIn{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1015;color:#fff;font-size:13px;padding:11px 24px;border-radius:22px;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:500;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.25);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media print{
+  #filter-bar,#tools-menu,.del-btn,.status-row,.note-toggle,.recs-toggle,.recs-body,.add-row,#app-header .hdr-chips,.tools-btn,.search-row,.hdr-stats{display:none!important;}
+  #app-header{position:relative;box-shadow:none;padding:12px 16px;}
+  .sec-body{display:block!important;}
+  body{background:#fff;}
+  .sec{box-shadow:none;border:1px solid #ccc;}
+  .item{break-inside:avoid;}
+}
+@media(max-width:600px){
+  .hdr-title{font-size:19px;}#app-header{padding:14px 13px 0;}
+  main{padding:14px 10px 90px;}.item{padding:11px 12px;}.sec-head{padding:12px 12px;}
+  .del-btn{opacity:.4;}.sp{padding:4px 8px;font-size:10px;}
+}
+</style>
 </head>
 <body>
-<p dir="rtl" class="p1"><span class="s1"></span><br></p>
-<p dir="rtl" class="p2"><span class="s2">טוענת</span><span class="s3"> </span><span class="s2">את</span><span class="s3"> </span><span class="s2">הרשימה</span><span class="s3">...</span></p>
-<p dir="rtl" class="p3"><span class="s1"></span><br></p>
+
+<div id="setup" style="display:none">
+  <div class="setup-card">
+    <h2>🎀 הגדרת הרשימה</h2>
+    <p class="sub">כדי שהרשימה תסתנכרן בין שניכם בזמן אמת, צריך Firebase (חינם, 5 דקות).</p>
+    <ol class="steps">
+      <li>כנסי ל-<a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> עם Gmail</li>
+      <li>לחצי <strong>Create a project</strong> ← תני שם ← המשיכי עד סוף</li>
+      <li><strong>Realtime Database</strong> ← <strong>Create Database</strong> ← <code>Test mode</code> ← Enable</li>
+      <li>Project Overview ← <strong>Add app</strong> ← <strong>Web</strong> <code>&lt;/&gt;</code> ← Register app</li>
+      <li>תקבלי בלוק <code>firebaseConfig</code> — העתיקי את כל האובייקט ← הדביקי למטה</li>
+    </ol>
+    <div class="setup-err" id="setup-err"></div>
+    <textarea class="cfg-area" id="cfg-input" placeholder='{apiKey:"...",databaseURL:"https://...-default-rtdb.firebaseio.com",...}'></textarea>
+    <button class="setup-btn" onclick="applyConfig()">התחילי! 🎀</button>
+    <p class="setup-note">שלחי לינק לקובץ + Config גם למתן — הרשימה תסתנכרן.</p>
+  </div>
+</div>
+
+<div id="loading"><div class="spinner"></div><p>טוענת את הרשימה...</p></div>
+
+<div id="app" style="display:none">
+  <div id="app-header">
+    <div class="hdr-row1">
+      <div><div class="hdr-title">רשימת לידה 🎀</div><div class="hdr-subtitle">תמר ומתן</div></div>
+      <div class="hdr-chips">
+        <span class="due-chip" id="due-chip" onclick="editDueDate()">⏳ ...</span>
+        <div class="sync-chip" id="sync-chip"><span class="sdot" id="sdot"></span><span id="sync-lbl">מסונכרן</span></div>
+        <button class="tools-btn" onclick="openTools()">⚙️</button>
+      </div>
+    </div>
+    <div class="hdr-stats" id="hdr-stats"></div>
+    <div class="hdr-prog">
+      <div class="prog-nums"><span class="prog-n" id="prog-text">0 / 0</span><span class="prog-n" id="prog-pct">0%</span></div>
+      <div class="prog-track"><div class="prog-bar2" id="prog-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="filter-bar">
+    <div class="search-row"><input class="search-inp" id="search-inp" type="search" placeholder="🔍 חיפוש פריט..." oninput="onSearch(this.value)"></div>
+    <div class="filt-row" id="status-filters">
+      <button class="fl f-all on" data-f="all" onclick="setFilter('all')">הכל</button>
+      <button class="fl f-done" data-f="done" onclick="setFilter('done')">✅ בוצע</button>
+      <button class="fl f-todo" data-f="todo" onclick="setFilter('todo')">◻ לא בוצע</button>
+      <span class="fl-div"></span>
+      <button class="fl f-none" data-f="none" onclick="setFilter('none')">לא נקנה</button>
+      <button class="fl f-have" data-f="have" onclick="setFilter('have')">✋ יש לנו</button>
+      <button class="fl f-loaned" data-f="loaned" onclick="setFilter('loaned')">🔄 הושאל</button>
+      <button class="fl f-bought" data-f="bought" onclick="setFilter('bought')">🛒 נקנה</button>
+    </div>
+    <div class="filt-row" id="sec-filters"></div>
+    <div class="filt-row" id="tag-filters">
+      <button class="fl f-tag-all on" data-tag="all" onclick="setTagFilter('all')">כל התגיות</button>
+      <button class="fl f-tag-must" data-tag="must" onclick="setTagFilter('must')">🔴 חובה</button>
+      <button class="fl f-tag-wait" data-tag="wait" onclick="setTagFilter('wait')">⏳ להמתין</button>
+      <button class="fl f-tag-gift" data-tag="gift" onclick="setTagFilter('gift')">🎁 מתנה</button>
+      <button class="fl f-tag-hosp" data-tag="hosp" onclick="setTagFilter('hosp')">🏥 בביה״ח</button>
+    </div>
+  </div>
+
+  <main id="main"></main>
+</div>
+
+<div id="tools-menu">
+  <div class="tools-overlay" onclick="closeTools()"></div>
+  <div class="tools-panel">
+    <h3>⚙️ כלים</h3>
+    <div class="tool-item" onclick="exportExcel()"><div class="tool-icon">📊</div><div class="tool-text"><div class="tool-title">ייצוא לאקסל</div><div class="tool-desc">הורדת הרשימה כקובץ Excel</div></div></div>
+    <div class="tool-item" onclick="printList()"><div class="tool-icon">🖨️</div><div class="tool-text"><div class="tool-title">הדפסה / PDF</div><div class="tool-desc">שמירה כ-PDF או הדפסה</div></div></div>
+    <div class="tool-item" onclick="editDueDate();closeTools()"><div class="tool-icon">📅</div><div class="tool-text"><div class="tool-title">שינוי תאריך לידה</div><div class="tool-desc">עדכון הספירה לאחור</div></div></div>
+    <div class="tool-item" onclick="resetToDefaults()"><div class="tool-icon">🔄</div><div class="tool-text"><div class="tool-title">איפוס הרשימה</div><div class="tool-desc">החזרת כל הפריטים לברירת מחדל</div></div></div>
+    <button class="tools-close" onclick="closeTools()">סגירה</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const INLINE_DB_URL = 'https://baby-checklist-381ea-default-rtdb.firebaseio.com';
+const INLINE_API_KEY = 'AIzaSyDjs-duajgnPyk7jl_VgaoAfTo4-0Nm9RY';
+
+let DUE_DATE = new Date('2026-06-24');
+
+const DEFAULTS = [
+  {id:'s0',title:'🎒 תיק לחדר לידה',color:'pink',items:[
+    {id:'i0',name:'תיק מעקב הריון — כל המסמכים',tip:'בדיקות דם חודש 9, סקירות, שקיפות',tag:'must',priority:'high'},
+    {id:'i1',name:'תעודות זהות + ספחים (שלך ושל הבעל)',tip:'',tag:'must',priority:'high'},
+    {id:'i2',name:'בקבוק מים עם קש',tip:'',tag:'must',priority:'med'},
+    {id:'i3',name:'נשנושים — אגוזים, פירות יבשים, חטיפי אנרגיה',tip:'',tag:'must',priority:'med'},
+    {id:'i4',name:'אוזניות / רמקול',tip:'',tag:'must',priority:'low'},
+    {id:'i5',name:'מטען לטלפון לשניכם',tip:'',tag:'must',priority:'high'},
+    {id:'i6',name:'מגבות (2 — גם לבעל)',tip:'',tag:'must',priority:'med'},
+    {id:'i7',name:'כפכפים למקלחת (גם לבעל)',tip:'',tag:'must',priority:'med'},
+    {id:'i8',name:'תיק מקלחת — שמפו, סבון, קרם פנים, מסרק',tip:'',tag:'must',priority:'med'},
+    {id:'i9',name:'מברשת ומשחת שיניים',tip:'',tag:'must',priority:'med'},
+    {id:'i10',name:'דאודורנט + שפתון לחות',tip:'',tag:'must',priority:'low'},
+    {id:'i11',name:'גרביים (עבות ודקות)',tip:'',tag:'must',priority:'low'},
+    {id:'i12',name:"ג'קט / סווטשירט למקרה שקר",tip:'',tag:'must',priority:'med'},
+    {id:'i13',name:'שמן שקדים סגור (2 בקבוקים)',tip:'',tag:'must',priority:'high'},
+    {id:'i14',name:'תחתונים חד פעמיים — 2 חבילות',tip:'2 בתיק לידה, שאר במזוודה',tag:'must',priority:'high'},
+    {id:'i15',name:'בקבוק פרי לשטיפה',tip:'לסטריליזציה לפני!',tag:'must',priority:'high'},
+    {id:'i16',name:'תרסיס אלופירסט (למקרה תפרים)',tip:'',tag:'must',priority:'med'},
+    {id:'i17',name:'חזיית הנקה (2)',tip:'לכבס עם אבקה היפואלרגנית לפני',tag:'must',priority:'high'},
+    {id:'i18',name:"פיג'מה נוחה עם כפתורים (2)",tip:'אחת שחורה מומלצת, מידה גדולה',tag:'must',priority:'high'},
+    {id:'i19',name:'3 סטים להחלפה + בגדי יציאה הביתה',tip:'',tag:'must',priority:'high'},
+    {id:'i20',name:'תחתוני קוטקס סופגים — 2 חבילות',tip:'מידה גדולה!',tag:'must',priority:'high'},
+    {id:'i21',name:'טנס מצירים',tip:'להזמין מראש וללמוד! קוד: חברהפינקהאותי',tag:'must',priority:'high'},
+    {id:'i22',name:'בגד ים / טופ לבריכה (גם לבעל)',tip:'',tag:'must',priority:'low'},
+    {id:'i23',name:'שקיות ניילון + שקית כביסה',tip:'',tag:'must',priority:'med'},
+    {id:'i24',name:'משחה לפטמות',tip:'מומלץ להתחיל לרכך לפני הלידה!',tag:'must',priority:'high'},
+    {id:'i25',name:'פדים להנקה',tip:'',tag:'must',priority:'high'},
+    {id:'i26',name:'ויטמינים של ההריון',tip:'ממשיכים לקחת גם בהנקה!',tag:'must',priority:'high'},
+    {id:'i27',name:'בגדים לבעל כולל כפכפים',tip:'',tag:'must',priority:'med'}
+  ]},
+  {id:'s1',title:'🧸 תיק לתינוקת — בית חולים',color:'blue',items:[
+    {id:'i0',name:'2 סטים בגדים + סט יציאה הביתה',tip:'בגד גוף תיקתקים + אוברול + מכנס עם רגליות',tag:'must',priority:'high'},
+    {id:'i1',name:'כובע NB ליציאה מביה"ח',tip:'',tag:'must',priority:'high'},
+    {id:'i2',name:'גרביים (2 זוגות)',tip:'',tag:'must',priority:'high'},
+    {id:'i3',name:'כפפות שלא תשרוט את עצמה',tip:'',tag:'must',priority:'high'},
+    {id:'i4',name:'2 חיתולי טטרה',tip:'',tag:'must',priority:'high'},
+    {id:'i5',name:'שמיכה חמה ליציאה מביה"ח',tip:'',tag:'must',priority:'high'},
+    {id:'i6',name:'מוצצים (כמה סוגים)',tip:'לאחר סטריליזציה — התינוקת תבחר',tag:'must',priority:'high'},
+    {id:'i7',name:'אלכוהול 70% + צמר גפן לטבור',tip:'',tag:'must',priority:'high'},
+    {id:'i8',name:'משחת החתלה',tip:'יש בביה"ח',tag:'hosp',priority:'low'},
+    {id:'i9',name:'מגבונים ללא בישום',tip:'יש בביה"ח',tag:'hosp',priority:'low'},
+    {id:'i10',name:'חיתולים',tip:'יש בביה"ח — לחטוף הביתה!',tag:'hosp',priority:'low'}
+  ]},
+  {id:'s2',title:'🛁 ציוד גדול — הבית',color:'teal',items:[
+    {id:'i0',name:'עגלה',tip:'',tag:'must',priority:'high'},
+    {id:'i1',name:'כיסא בטיחות לרכב',tip:'להתקין לפני הלידה!',tag:'must',priority:'high'},
+    {id:'i2',name:'מגן צל לחלון הרכב',tip:'',tag:'must',priority:'high'},
+    {id:'i3',name:'מראה לראש המושב',tip:'לנסוע לבד ולראות את הבייבי',tag:'must',priority:'med'},
+    {id:'i4',name:'שלט "תינוק ברכב"',tip:'',tag:'must',priority:'low'},
+    {id:'i5',name:'שידת החתלה',tip:'לבדוק שהגובה נוח לשניכם!',tag:'must',priority:'high'},
+    {id:'i6',name:'משטח החתלה',tip:'צבע ניוטרלי',tag:'must',priority:'high'},
+    {id:'i7',name:'מתחברת / עריסה + מזרן',tip:'לשימוש בחודשים הראשונים',tag:'must',priority:'high'},
+    {id:'i8',name:'מיטת תינוק',tip:'לשלב מאוחר',tag:'must',priority:'med'},
+    {id:'i9',name:'אמבטיה + מעמד',tip:'לא לקנות צף קל — עובש!',tag:'must',priority:'high'},
+    {id:'i10',name:'מד טמפרטורה לאמבט',tip:'',tag:'must',priority:'med'},
+    {id:'i11',name:'מגבת רחצה',tip:'לקנות 1 — תקבלי מתנות',tag:'must',priority:'med'},
+    {id:'i12',name:'בוינסר / כורסת נדנדה',tip:'מציל חיים!',tag:'must',priority:'high'},
+    {id:'i13',name:'מנורת לילה עם אור חם',tip:'לחדר הבייבי',tag:'must',priority:'med'},
+    {id:'i14',name:'מוניטור / baby cam',tip:'',tag:'must',priority:'med'},
+    {id:'i15',name:'מנשא / עגלת בד',tip:'להתנסות בכמה סוגים',tag:'must',priority:'med'},
+    {id:'i16',name:'כיסא אוכל גבוה',tip:'לשלב מאוחר יותר',tag:'wait',priority:'low'},
+    {id:'i17',name:'שטיח לחדר',tip:'',tag:'wait',priority:'low'}
+  ]},
+  {id:'s3',title:'🍼 הנקה ואכלה',color:'amber',items:[
+    {id:'i0',name:'משאבת חלב',tip:'כפולה — לחסוך זמן!',tag:'must',priority:'high'},
+    {id:'i1',name:'שקיות אחסון חלב',tip:'',tag:'must',priority:'high'},
+    {id:'i2',name:'בקבוקים (3-4)',tip:'לאחר סטריליזציה',tag:'must',priority:'high'},
+    {id:'i3',name:'סטריליזטור',tip:'חשמלי או מיקרוגל',tag:'must',priority:'high'},
+    {id:'i4',name:'ברש לבקבוקים',tip:'',tag:'must',priority:'med'},
+    {id:'i5',name:'כריות הנקה',tip:'C-shape — ממש עוזר!',tag:'must',priority:'high'},
+    {id:'i6',name:'מחמם בקבוקים',tip:'',tag:'must',priority:'med'},
+    {id:'i7',name:'פטמות בגדלים שונים',tip:'הבייבי תבחר',tag:'must',priority:'med'}
+  ]},
+  {id:'s4',title:'🧴 טואלטיקה לתינוקת',color:'purple',items:[
+    {id:'i0',name:'שמן לתינוקות',tip:'להמסאז׳',tag:'must',priority:'med'},
+    {id:'i1',name:'קרם החתלה',tip:'Sudocrem / Bepanthen',tag:'must',priority:'high'},
+    {id:'i2',name:'סבון / שמפו לתינוקות',tip:'היפואלרגני',tag:'must',priority:'high'},
+    {id:'i3',name:'מגבונים ללא בישום (כמה חבילות)',tip:'',tag:'must',priority:'high'},
+    {id:'i4',name:'מד חום',tip:'רקטלי / אוזן',tag:'must',priority:'high'},
+    {id:'i5',name:'מספריים / פצירה לציפורניים',tip:'',tag:'must',priority:'med'},
+    {id:'i6',name:'מציצן אף',tip:'Frida BabyNoseFrida',tag:'must',priority:'med'},
+    {id:'i7',name:'חיתולים NB + מידה 1',tip:'לא לצבור יותר מדי NB',tag:'must',priority:'high'},
+    {id:'i8',name:'כותנה / גזה לניקוי עיניים',tip:'',tag:'must',priority:'med'}
+  ]},
+  {id:'s5',title:'🧶 טקסטיל',color:'green',items:[
+    {id:'i0',name:'שמיכות דקות (3-4)',tip:'',tag:'must',priority:'high'},
+    {id:'i1',name:'סדינים למזרן (3)',tip:'לכבס לפני עם אבקה היפואלרגנית',tag:'must',priority:'high'},
+    {id:'i2',name:'שקי שינה (2)',tip:'לפי עונה',tag:'must',priority:'high'},
+    {id:'i3',name:'חיתולי טטרה (10)',tip:'שימושי מאוד!',tag:'must',priority:'high'},
+    {id:'i4',name:'ווטרפרוף למזרן',tip:'',tag:'must',priority:'med'}
+  ]},
+  {id:'s6',title:'👗 בגדים לתינוקת',color:'coral',items:[
+    {id:'i0',name:'בגדי גוף תיקתקים NB (5)',tip:'',tag:'must',priority:'high'},
+    {id:'i1',name:'בגדי גוף תיקתקים מידה 0-3 (5)',tip:'',tag:'must',priority:'high'},
+    {id:'i2',name:"פיג'מות עם רגליות (3)",tip:'',tag:'must',priority:'high'},
+    {id:'i3',name:'כובעים (3)',tip:'',tag:'must',priority:'high'},
+    {id:'i4',name:'גרביים (5 זוגות)',tip:'',tag:'must',priority:'high'},
+    {id:'i5',name:"ז'קט / קפוצ'ון",tip:'',tag:'must',priority:'med'},
+    {id:'i6',name:'בגד ים קטן',tip:'',tag:'wait',priority:'low'}
+  ]},
+  {id:'s7',title:'👩 לאמא — אחרי הלידה',color:'rose',items:[
+    {id:'i0',name:'פדי מגנזיום לריפוי האזור',tip:'',tag:'must',priority:'high'},
+    {id:'i1',name:"רפידות הנקה ג'ל שמתקררות",tip:'',tag:'must',priority:'high'},
+    {id:'i2',name:'חזיות הנקה נוספות',tip:'לכבס לפני עם אבקה היפואלרגנית',tag:'must',priority:'high'},
+    {id:'i3',name:'תחתוני קוטקס סופגים',tip:'מידה גדולה!',tag:'must',priority:'high'},
+    {id:'i4',name:'אלופירסט / עזרקאין (למקרה תפרים)',tip:'',tag:'must',priority:'med'}
+  ]},
+  {id:'s8',title:'📋 בירוקרטיה — לא לשכוח!',color:'gray',items:[
+    {id:'i0',name:'רישום בביטוח לאומי בביה"ח',tip:'ת.ז + מספר חשבון בנק — לקבלת מענק לידה',tag:'must',priority:'high'},
+    {id:'i1',name:'קביעת תור לטיפת חלב (10-14 יום + חודש)',tip:'לקבוע כבר בביה"ח — אין תורים!',tag:'must',priority:'high'},
+    {id:'i2',name:'שם לתינוקת',tip:'תוך 10 ימים לעדכן באתר ביטוח לאומי!',tag:'must',priority:'high'},
+    {id:'i3',name:'רישום לקופת חולים + תור ראשוני לרופא',tip:'עדיף קופה של האמא, לשאול על רופא מומלץ',tag:'must',priority:'high'},
+    {id:'i4',name:'ביטוח בריאות פרטי לתינוקת',tip:'בשבועות הראשונים לחיים',tag:'must',priority:'high'},
+    {id:'i5',name:'חיסכון לכל ילד',tip:'55₪ מהמדינה — לטפל תוך 3 חודשים. אפשר להכפיל ל-110₪.',tag:'must',priority:'high'}
+  ]}
+];
+
+let db=null,state={},_skip=false,activeFilter='all',searchQ='',activeSectionFilter=null,activeTagFilter='all';
+const prevSecPct={};
+
+function generatePWAIcon(){
+  try{
+    const c=document.createElement('canvas');c.width=c.height=180;
+    const ctx=c.getContext('2d');
+    const g=ctx.createLinearGradient(0,0,180,180);
+    g.addColorStop(0,'#D04070');g.addColorStop(1,'#A03060');
+    ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(0,0,180,180,38);ctx.fill();
+    ctx.font='95px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🎀',90,97);
+    const data=c.toDataURL('image/png');
+    const il=document.getElementById('pwa-icon');if(il)il.href=data;
+    const manifest={name:'רשימת לידה — תמר ומתן',short_name:'רשימת לידה',start_url:'.',
+      display:'standalone',background_color:'#F5EFF0',theme_color:'#C0476E',lang:'he',dir:'rtl',
+      icons:[{src:data,sizes:'180x180',type:'image/png'}]};
+    const ml=document.getElementById('pwa-manifest');
+    if(ml)ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
+  }catch(e){}
+}
+
+function loadConfig(){
+  if(INLINE_DB_URL)return{databaseURL:INLINE_DB_URL,apiKey:INLINE_API_KEY||'x'};
+  const s=localStorage.getItem('fb_cfg');return s?JSON.parse(s):null;
+}
+function applyConfig(){
+  const raw=document.getElementById('cfg-input').value.trim();
+  const errEl=document.getElementById('setup-err');errEl.style.display='none';
+  let cfg;try{cfg=new Function('return ('+raw+')')();}
+  catch(e){errEl.textContent='לא הצלחתי לקרוא את ה-config.';errEl.style.display='block';return;}
+  if(!cfg||!cfg.databaseURL){errEl.textContent='חסר databaseURL.';errEl.style.display='block';return;}
+  localStorage.setItem('fb_cfg',JSON.stringify({databaseURL:cfg.databaseURL,apiKey:cfg.apiKey||'x'}));
+  location.reload();
+}
+function initFB(cfg){
+  if(!firebase.apps.length)firebase.initializeApp({apiKey:cfg.apiKey||'x',databaseURL:cfg.databaseURL,
+    authDomain:'',projectId:cfg.databaseURL.replace('https://','').split('.')[0],
+    storageBucket:'',messagingSenderId:'0',appId:'1:0:web:0'});
+  db=firebase.database();
+}
+function buildDefaults(){
+  const out={};
+  DEFAULTS.forEach((sec,si)=>{
+    const items={};
+    sec.items.forEach(it=>{items[it.id]={name:it.name,tip:it.tip||'',tag:it.tag||'',
+      priority:it.priority||'med',status:'none',loanedFrom:'',price:'',note:'',recs:{}};});
+    out[sec.id]={title:sec.title,color:sec.color,order:si,items};
+  });
+  return out;
+}
+
+function loadData(){
+  setSync('saving','טוענת...');
+  const ref=db.ref('checklist');
+  ref.once('value').then(snap=>{
+    const val=snap.val();
+    if(!val){const d=buildDefaults();return ref.set(d).then(()=>{state=d;showApp();});}
+    state=val;
+    if(val._meta&&val._meta.dueDate)DUE_DATE=new Date(val._meta.dueDate);
+    showApp();
+  }).catch(err=>{
+    console.error(err);setSync('error','שגיאת חיבור');
+    document.getElementById('loading').innerHTML='<div style="text-align:center;padding:32px;color:#c0392b;font-size:14px">שגיאה בחיבור.<br>'+
+      '<button onclick="localStorage.removeItem(\'fb_cfg\');location.reload()" style="margin-top:14px;padding:8px 18px;background:var(--rose);color:#fff;border:none;border-radius:8px;cursor:pointer">נסי Config חדש</button></div>';
+  });
+  ref.on('value',snap=>{
+    if(_skip){_skip=false;return;}
+    const val=snap.val();if(!val)return;
+    const ae=document.activeElement;
+    if(ae&&(ae.isContentEditable||ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;
+    if(val._meta&&val._meta.dueDate)DUE_DATE=new Date(val._meta.dueDate);
+    state=val;render();setSync('saved','מסונכרן');
+  });
+}
+function showApp(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+  buildSecFilters();render();setSync('saved','מסונכרן');
+  setTimeout(()=>{
+    const hh=document.getElementById('app-header').offsetHeight;
+    document.getElementById('filter-bar').style.top=hh+'px';
+  },150);
+}
+
+function fbSet(path,val){
+  _skip=true;setSync('saving','שומר...');
+  db.ref('checklist/'+path).set(val).then(()=>setSync('saved','מסונכרן')).catch(e=>{setSync('error','שגיאה');console.error(e);});
+}
+function fbRemove(path){_skip=true;db.ref('checklist/'+path).remove();}
+
+function getStatus(it){if(it&&it.status)return it.status;return(it&&it.checked)?'bought':'none';}
+function setStatus(sk,ik,newSt){
+  const oldPct=secPct(sk);
+  if(state[sk]?.items?.[ik])state[sk].items[ik].status=newSt;
+  fbSet(sk+'/items/'+ik+'/status',newSt);
+  const row=document.querySelector('[data-item="'+sk+':'+ik+'"]');
+  if(row){const p=row.parentNode,n=row.nextSibling;p.insertBefore(buildItemEl(sk,ik,state[sk].items[ik]),n);row.remove();}
+  const newPct=secPct(sk);
+  if(oldPct<100&&newPct===100)celebrateSection(sk);
+  updateProgress();
+}
+function secPct(sk){
+  const items=state[sk]?.items||{};const keys=Object.keys(items);
+  if(!keys.length)return 0;
+  return Math.round(keys.filter(k=>getStatus(items[k])!=='none').length/keys.length*100);
+}
+
+function saveItemName(sk,ik,el){
+  const n=el.textContent.trim();
+  if(!n){el.textContent=state[sk]?.items?.[ik]?.name||'';return;}
+  state[sk].items[ik].name=n;fbSet(sk+'/items/'+ik+'/name',n);
+}
+function saveItemTip(sk,ik,el){
+  const t=el.textContent.trim();
+  if(state[sk]?.items?.[ik])state[sk].items[ik].tip=t;
+  fbSet(sk+'/items/'+ik+'/tip',t);
+}
+function extractSectionIcon(title){
+  const m=(title||'').match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*(.*)/su);
+  return m?[m[1],m[2]]:['',title||''];
+}
+function saveSectionTitle(sk,el){
+  const t=el.textContent.trim();
+  if(!t){const[,tOnly]=extractSectionIcon(state[sk]?.title||'');el.textContent=tOnly;return;}
+  const[ico]=extractSectionIcon(state[sk]?.title||'');
+  state[sk].title=(ico?ico+' ':'')+t;fbSet(sk+'/title',state[sk].title);
+}
+function saveSectionIcon(sk,el){
+  const ico=el.textContent.trim();
+  const[,tOnly]=extractSectionIcon(state[sk]?.title||'');
+  const nt=(ico?ico+' ':'')+tOnly;
+  state[sk].title=nt;fbSet(sk+'/title',nt);
+  if(!ico)el.textContent='📋';
+}
+function saveLoanedFrom(sk,ik,val){if(state[sk]?.items?.[ik])state[sk].items[ik].loanedFrom=val;fbSet(sk+'/items/'+ik+'/loanedFrom',val);}
+function savePrice(sk,ik,val){if(state[sk]?.items?.[ik])state[sk].items[ik].price=val;fbSet(sk+'/items/'+ik+'/price',val);}
+function saveNote(sk,ik,el){
+  autoGrow(el);const n=el.value;
+  if(state[sk]?.items?.[ik])state[sk].items[ik].note=n;
+  fbSet(sk+'/items/'+ik+'/note',n);
+  const toggle=document.querySelector('[data-ntoggle="'+sk+':'+ik+'"]');
+  if(toggle){toggle.textContent=n.trim()?'💬 הערה ▾':'💬 הוסיפי הערה';toggle.classList.toggle('has-note',!!n.trim());}
+}
+function toggleNote(sk,ik){
+  const ta=document.querySelector('[data-note="'+sk+':'+ik+'"]');
+  if(!ta)return;ta.classList.toggle('open');
+  if(ta.classList.contains('open')){ta.focus();autoGrow(ta);}
+}
+
+const TAG_CYCLE=['must','wait','gift','hosp','loan',''];
+function cycleTag(sk,ik){
+  const cur=(state[sk]?.items?.[ik]?.tag)||'';
+  const next=TAG_CYCLE[(TAG_CYCLE.indexOf(cur)+1)%TAG_CYCLE.length];
+  if(state[sk]?.items?.[ik])state[sk].items[ik].tag=next;
+  fbSet(sk+'/items/'+ik+'/tag',next);
+  const itemEl=document.querySelector('[data-item="'+sk+':'+ik+'"]');
+  if(itemEl&&state[sk]?.items?.[ik]){
+    const newEl=buildItemEl(sk,ik,state[sk].items[ik]);
+    itemEl.parentNode.insertBefore(newEl,itemEl);itemEl.remove();
+  }
+}
+
+function buildRecRow(sk,ik,rk,val){
+  const row=document.createElement('div');row.className='rec-row';row.dataset.rec=sk+':'+ik+':'+rk;
+  const[skE,ikE,rkE]=[esc(sk),esc(ik),esc(rk)];
+  row.innerHTML='<input class="rec-inp" value="'+esc(val)+'" placeholder="המלצה, חנות, לינק, מחיר..."'+
+    ' onchange="saveRec(\''+skE+'\',\''+ikE+'\',\''+rkE+'\',this.value)">'+
+    '<button class="rec-del" onclick="deleteRec(\''+skE+'\',\''+ikE+'\',\''+rkE+'\')" title="מחק">×</button>';
+  return row;
+}
+function addRec(sk,ik){
+  const ref=db.ref('checklist/'+sk+'/items/'+ik+'/recs').push();_skip=false;
+  ref.set('').then(()=>{
+    const body=document.querySelector('[data-recs="'+sk+':'+ik+'"]');
+    if(body){const row=buildRecRow(sk,ik,ref.key,'');body.insertBefore(row,body.lastElementChild);row.querySelector('.rec-inp')?.focus();updateRecToggle(sk,ik);}
+  });
+}
+function saveRec(sk,ik,rk,val){
+  if(state[sk]?.items?.[ik]){if(!state[sk].items[ik].recs)state[sk].items[ik].recs={};state[sk].items[ik].recs[rk]=val;}
+  fbSet(sk+'/items/'+ik+'/recs/'+rk,val);
+}
+function deleteRec(sk,ik,rk){
+  document.querySelector('[data-rec="'+sk+':'+ik+':'+rk+'"]')?.remove();
+  if(state[sk]?.items?.[ik]?.recs)delete state[sk].items[ik].recs[rk];
+  fbRemove(sk+'/items/'+ik+'/recs/'+rk);updateRecToggle(sk,ik);
+}
+function updateRecToggle(sk,ik){
+  const t=document.querySelector('[data-rtoggle="'+sk+':'+ik+'"]');if(!t)return;
+  const n=Object.values(state[sk]?.items?.[ik]?.recs||{}).filter(Boolean).length;
+  t.textContent=n?'📌 המלצות ('+n+') ▾':'📌 הוסיפי המלצה';t.classList.toggle('has-recs',n>0);
+}
+function toggleRecs(sk,ik){document.querySelector('[data-recs="'+sk+':'+ik+'"]')?.classList.toggle('open');}
+
+function addItem(sk){
+  const n=prompt('שם הפריט החדש:');if(!n||!n.trim())return;
+  const ref=db.ref('checklist/'+sk+'/items').push();_skip=false;
+  ref.set({name:n.trim(),tip:'',tag:'must',priority:'med',status:'none',loanedFrom:'',price:'',note:'',recs:{}}).then(()=>toast('פריט נוסף ✓'));
+}
+function deleteItem(sk,ik){
+  const nm=state[sk]?.items?.[ik]?.name||'פריט';
+  if(!confirm('למחוק "'+nm+'"?'))return;
+  document.querySelector('[data-item="'+sk+':'+ik+'"]')?.remove();
+  delete state[sk].items[ik];fbRemove(sk+'/items/'+ik);updateProgress();
+}
+
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('#status-filters .fl').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  render();
+}
+function onSearch(val){searchQ=val.trim().toLowerCase();render();}
+function setTagFilter(tag){
+  activeTagFilter=tag;
+  document.querySelectorAll('#tag-filters .fl').forEach(b=>b.classList.toggle('on',b.dataset.tag===tag));
+  render();
+}
+function matchesFilter(it){
+  const st=getStatus(it),q=searchQ;
+  if(q&&!(it.name||'').toLowerCase().includes(q)&&!(it.tip||'').toLowerCase().includes(q)&&
+     !Object.values(it.recs||{}).some(r=>(r||'').toLowerCase().includes(q)))return false;
+  if(activeTagFilter!=='all'&&(it.tag||'')!==activeTagFilter)return false;
+  if(activeFilter==='all')return true;
+  if(activeFilter==='done')return st!=='none';
+  if(activeFilter==='todo')return st==='none';
+  return st===activeFilter;
+}
+function buildSecFilters(){
+  const bar=document.getElementById('sec-filters');bar.innerHTML='';
+  const allBtn=document.createElement('button');allBtn.className='fl f-sec-all on';allBtn.dataset.sk='all';
+  allBtn.textContent='הכל';allBtn.onclick=()=>{activeSectionFilter=null;updateSecFilterBtns();render();};
+  bar.appendChild(allBtn);
+  Object.keys(state).filter(k=>k!=='_meta').sort((a,b)=>(state[a].order||0)-(state[b].order||0)).forEach(sk=>{
+    const sec=state[sk];if(!sec)return;
+    const[ico]=extractSectionIcon(sec.title);
+    const btn=document.createElement('button');btn.className='fl';btn.dataset.sk=sk;
+    btn.title=sec.title;btn.textContent=ico||'📋';
+    btn.onclick=()=>{activeSectionFilter=(activeSectionFilter===sk?null:sk);updateSecFilterBtns();render();};
+    bar.appendChild(btn);
+  });
+}
+function updateSecFilterBtns(){
+  document.querySelectorAll('#sec-filters .fl').forEach(b=>{
+    const isAll=b.dataset.sk==='all';
+    const isActive=isAll?!activeSectionFilter:b.dataset.sk===activeSectionFilter;
+    b.classList.toggle('on',isActive);
+    b.classList.toggle('f-sec',isActive&&!isAll);
+    b.classList.toggle('f-sec-all',isActive&&isAll);
+  });
+}
+
+function celebrateSection(sk){
+  toast('🎉 '+( state[sk]?.title||'').replace(/^\S+\s*/,'')+' — הושלם!');
+  if(typeof confetti==='function')confetti({particleCount:80,spread:60,origin:{y:.6},colors:['#C0476E','#F9A8C0','#fff','#FFD700']});
+}
+
+function openTools(){document.getElementById('tools-menu').classList.add('open');}
+function closeTools(){document.getElementById('tools-menu').classList.remove('open');}
+function printList(){closeTools();setTimeout(()=>window.print(),200);}
+function editDueDate(){
+  const cur=DUE_DATE.toISOString().split('T')[0];
+  const v=prompt('תאריך לידה משוער (YYYY-MM-DD):',cur);if(!v)return;
+  const d=new Date(v);if(isNaN(d)){toast('תאריך לא תקין');return;}
+  DUE_DATE=d;fbSet('_meta/dueDate',v);updateDue();toast('תאריך עודכן ✓');
+}
+function resetToDefaults(){
+  if(!confirm('לאפס את כל הרשימה? כל השינויים יאבדו.'))return;
+  closeTools();const d=buildDefaults();
+  db.ref('checklist').set(d).then(()=>{state=d;render();toast('הרשימה אופסה ✓');});
+}
+function exportExcel(){
+  closeTools();if(typeof XLSX==='undefined'){toast('XLSX לא זמין');return;}
+  const wb=XLSX.utils.book_new();
+  const sKeys=Object.keys(state).filter(k=>k!=='_meta').sort((a,b)=>(state[a].order||0)-(state[b].order||0));
+  const rows=[['קטגוריה','פריט','טיפ','סטטוס','ממי / מחיר','הערה','המלצות']];
+  sKeys.forEach(sk=>{
+    const sec=state[sk];if(!sec)return;
+    Object.values(sec.items||{}).forEach(it=>{
+      const st=getStatus(it);
+      const stLabel={none:'לא נקנה',have:'יש לנו',loaned:'הושאל',bought:'נקנה'}[st]||st;
+      const ctx=st==='loaned'?(it.loanedFrom||''):st==='bought'?(it.price?it.price+'₪':''):'';
+      rows.push([sec.title.replace(/^\S+\s*/,''),it.name,it.tip||'',stLabel,ctx,it.note||'',
+        Object.values(it.recs||{}).filter(Boolean).join(' | ')]);
+    });
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:20},{wch:40},{wch:30},{wch:12},{wch:20},{wch:30},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,ws,'רשימת לידה');
+  XLSX.writeFile(wb,'baby-checklist.xlsx');toast('הקובץ הורד ✓');
+}
+
+function buildItemEl(sk,ik,it){
+  const st=getStatus(it);
+  const tagMap={must:{cls:'tb-must',lbl:'חובה'},wait:{cls:'tb-wait',lbl:'להמתין'},
+    gift:{cls:'tb-gift',lbl:'מתנה'},hosp:{cls:'tb-hosp',lbl:'בביה"ח'},loan:{cls:'tb-loan',lbl:'השאלה'}};
+  const{cls:tagCls,lbl:tagLbl}=tagMap[it.tag||'']||{};
+  const recs=it.recs||{};
+  const recCount=Object.values(recs).filter(Boolean).length;
+  const hasNote=!!(it.note&&it.note.trim());
+  const[skE,ikE]=[esc(sk),esc(ik)];
+
+  const el=document.createElement('div');el.className='item st-'+st;el.dataset.item=sk+':'+ik;
+
+  const r1=document.createElement('div');r1.className='item-row1';
+  const nameEl=document.createElement('span');nameEl.className='item-name';nameEl.contentEditable='true';nameEl.textContent=it.name;
+  nameEl.onblur=()=>saveItemName(sk,ik,nameEl);
+  nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};
+  r1.appendChild(nameEl);
+
+  const bw=document.createElement('div');bw.className='item-badge-wrap';
+  const b=document.createElement('span');b.className='tag-badge '+(tagCls||'tb-none');
+  b.textContent=tagLbl||'ללא תג';b.title='לחצי לשינוי תג';b.onclick=()=>cycleTag(sk,ik);
+  bw.appendChild(b);r1.appendChild(bw);
+
+  const db2=document.createElement('button');db2.className='del-btn';db2.title='מחק';db2.textContent='🗑';
+  db2.onclick=()=>deleteItem(sk,ik);r1.appendChild(db2);
+  el.appendChild(r1);
+
+  const tipEl=document.createElement('div');tipEl.className='item-tip';tipEl.contentEditable='true';tipEl.textContent=it.tip||'';
+  tipEl.onblur=()=>saveItemTip(sk,ik,tipEl);
+  tipEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();tipEl.blur();}};
+  el.appendChild(tipEl);
+
+  const srow=document.createElement('div');srow.className='status-row';
+  [['none','לא נקנה'],['have','יש לנו'],['loaned','הושאל'],['bought','נקנה']].forEach(([s,lbl])=>{
+    const btn=document.createElement('button');btn.className='sp'+(st===s?' sp-on-'+s:'');
+    btn.textContent=lbl;btn.onclick=()=>setStatus(sk,ik,s);srow.appendChild(btn);
+  });
+  el.appendChild(srow);
+
+  if(st==='loaned'){
+    const ctx=document.createElement('div');ctx.className='ctx-field';
+    ctx.innerHTML='<span class="ctx-lbl">ממי הושאל:</span><input class="ctx-inp" value="'+esc(it.loanedFrom||'')+'" placeholder="שם..." onchange="saveLoanedFrom(\''+skE+'\',\''+ikE+'\',this.value)">';
+    el.appendChild(ctx);
+  }
+  if(st==='bought'){
+    const ctx=document.createElement('div');ctx.className='ctx-field';
+    ctx.innerHTML='<span class="ctx-lbl">מחיר:</span><input class="ctx-inp price" type="number" value="'+esc(it.price||'')+'" placeholder="0" onchange="savePrice(\''+skE+'\',\''+ikE+'\',this.value)"><span class="ctx-sym">₪</span>';
+    el.appendChild(ctx);
+  }
+
+  const noteWrap=document.createElement('div');noteWrap.className='note-wrap';
+  const noteToggle=document.createElement('button');noteToggle.className='note-toggle'+(hasNote?' has-note':'');
+  noteToggle.dataset.ntoggle=sk+':'+ik;noteToggle.textContent=hasNote?'💬 הערה ▾':'💬 הוסיפי הערה';
+  noteToggle.onclick=()=>toggleNote(sk,ik);noteWrap.appendChild(noteToggle);
+  const noteTa=document.createElement('textarea');noteTa.className='note-ta'+(hasNote?' open':'');
+  noteTa.dataset.note=sk+':'+ik;noteTa.placeholder='הוסיפי הערה...';noteTa.value=it.note||'';
+  noteTa.onchange=()=>saveNote(sk,ik,noteTa);noteTa.oninput=()=>autoGrow(noteTa);
+  noteWrap.appendChild(noteTa);el.appendChild(noteWrap);
+  if(hasNote)setTimeout(()=>autoGrow(noteTa),0);
+
+  const recsSection=document.createElement('div');recsSection.className='recs-section';
+  const recToggle=document.createElement('button');recToggle.className='recs-toggle'+(recCount?' has-recs':'');
+  recToggle.dataset.rtoggle=sk+':'+ik;recToggle.textContent=recCount?'📌 המלצות ('+recCount+') ▾':'📌 הוסיפי המלצה';
+  recToggle.onclick=()=>toggleRecs(sk,ik);recsSection.appendChild(recToggle);
+  const recsBody=document.createElement('div');recsBody.className='recs-body';recsBody.dataset.recs=sk+':'+ik;
+  Object.keys(recs).forEach(rk=>recsBody.appendChild(buildRecRow(sk,ik,rk,recs[rk]||'')));
+  const addRecBtn=document.createElement('button');addRecBtn.className='add-rec-btn';addRecBtn.textContent='+ הוסיפי המלצה';
+  addRecBtn.onclick=()=>addRec(sk,ik);recsBody.appendChild(addRecBtn);
+  recsSection.appendChild(recsBody);el.appendChild(recsSection);
+
+  return el;
+}
+
+function render(){
+  const main=document.getElementById('main');if(!main)return;
+  main.innerHTML='';
+  const sKeys=Object.keys(state).filter(k=>k!=='_meta').sort((a,b)=>(state[a].order||0)-(state[b].order||0));
+  let anyVisible=false;
+  sKeys.forEach(sk=>{
+    if(activeSectionFilter&&activeSectionFilter!==sk)return;
+    const sec=state[sk];if(!sec||!sec.items)return;
+    const iKeys=Object.keys(sec.items);
+    const visible=iKeys.filter(k=>matchesFilter(sec.items[k]));
+    if(!visible.length)return;
+    anyVisible=true;
+    const total=iKeys.length;
+    const done=iKeys.filter(k=>getStatus(sec.items[k])!=='none').length;
+    const pct=total?Math.round(done/total*100):0;
+
+    const secEl=document.createElement('div');secEl.className='sec c-'+(sec.color||'gray');secEl.id='sec-'+sk;
+    const head=document.createElement('div');head.className='sec-head open';
+    head.onclick=e=>{if(!e.target.isContentEditable)toggleSec(head);};
+    const[icon,titleOnly]=extractSectionIcon(sec.title);
+    head.innerHTML='<span class="sec-icon" contenteditable="true" title="לחצי לעריכת האימוג׳י"'+
+        ' onblur="saveSectionIcon(\''+esc(sk)+'\',this)"'+
+        ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.blur()}">'+(icon||'📋')+'</span>'+
+      '<span class="sec-title" contenteditable="true"'+
+        ' onblur="saveSectionTitle(\''+esc(sk)+'\',this)"'+
+        ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur()}">'+esc(titleOnly||sec.title)+'</span>'+
+      (pct===100?'<span class="sec-complete-badge">✓ הושלם</span>':'')+
+      '<div class="sec-meta"><span class="sec-count">'+done+'/'+total+'</span>'+
+        '<span class="sec-mini-prog"><span class="sec-mini-fill" style="width:'+pct+'%"></span></span></div>'+
+      '<span class="caret">▼</span>';
+    const body=document.createElement('div');body.className='sec-body open';
+    visible.sort((a,b)=>(getStatus(sec.items[a])==='none'?0:1)-(getStatus(sec.items[b])==='none'?0:1))
+      .forEach(ik=>{if(sec.items[ik])body.appendChild(buildItemEl(sk,ik,sec.items[ik]));});
+    if(activeFilter==='all'&&!searchQ&&!activeSectionFilter&&activeTagFilter==='all'){
+      const addRow=document.createElement('div');addRow.className='add-row';
+      addRow.innerHTML='<button class="add-btn" onclick="addItem(\''+esc(sk)+'\')">+ הוסף פריט</button>';
+      body.appendChild(addRow);
+    }
+    secEl.appendChild(head);secEl.appendChild(body);main.appendChild(secEl);
+  });
+  if(!anyVisible)main.innerHTML='<div class="empty-msg">אין פריטים לפי הפילטר הנוכחי 🔍<br><small>נסי פילטר אחר</small></div>';
+  updateProgress();updateDue();
+}
+
+function toggleSec(h){h.classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function autoGrow(el){el.style.height='auto';el.style.height=Math.max(36,el.scrollHeight)+'px';}
+function updateProgress(){
+  let total=0,done=0,cnt={none:0,have:0,loaned:0,bought:0};
+  Object.keys(state).filter(k=>k!=='_meta').forEach(sk=>{
+    Object.values(state[sk].items||{}).forEach(it=>{
+      total++;const st=getStatus(it);if(st!=='none')done++;cnt[st]=(cnt[st]||0)+1;
+    });
+  });
+  const pct=total?Math.round(done/total*100):0;
+  const f=document.getElementById('prog-fill'),t=document.getElementById('prog-text'),p=document.getElementById('prog-pct');
+  if(f)f.style.width=pct+'%';if(t)t.textContent=done+' / '+total+' טופלו';if(p)p.textContent=pct+'%';
+  const stats=document.getElementById('hdr-stats');
+  if(stats)stats.innerHTML=
+    '<span class="stat-chip">◻ לא נקנה <strong>'+cnt.none+'</strong></span>'+
+    '<span class="stat-chip">✋ יש לנו <strong>'+cnt.have+'</strong></span>'+
+    '<span class="stat-chip">🔄 הושאל <strong>'+cnt.loaned+'</strong></span>'+
+    '<span class="stat-chip">🛒 נקנה <strong>'+cnt.bought+'</strong></span>';
+}
+function updateDue(){
+  const el=document.getElementById('due-chip');if(!el)return;
+  const days=Math.ceil((DUE_DATE-new Date())/864e5);
+  el.textContent=days>0?'⏳ '+days+' ימים ← לחצי לשינוי':'בהצלחה! 🎀';
+}
+function setSync(type,msg){
+  const chip=document.getElementById('sync-chip'),lbl=document.getElementById('sync-lbl');
+  if(chip){chip.className='sync-chip'+(type==='error'?' error':'');if(type==='saving')chip.classList.add('saving');}
+  if(lbl)lbl.textContent=msg;
+}
+let _toastT;
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(_toastT);_toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  generatePWAIcon();updateDue();
+  const cfg=loadConfig();
+  if(!cfg||!cfg.databaseURL){document.getElementById('loading').style.display='none';document.getElementById('setup').style.display='flex';return;}
+  try{initFB(cfg);loadData();}
+  catch(e){
+    console.error(e);
+    document.getElementById('loading').innerHTML='<div style="text-align:center;padding:32px;color:#c0392b;font-size:14px">שגיאה: '+e.message+'<br>'+
+      '<button onclick="localStorage.removeItem(\'fb_cfg\');location.reload()" style="margin-top:12px;padding:8px 16px;background:var(--rose);color:#fff;border:none;border-radius:8px;cursor:pointer">הגדרה מחדש</button></div>';
+  }
+});
+</script>
 </body>
 </html>
