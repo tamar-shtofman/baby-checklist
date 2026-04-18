@@ -192,11 +192,11 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
 .vsh-done .view-section-pill{background:var(--sage-bg);color:var(--sage);}
 
 /* ── ITEMS ── */
-.item{padding:13px 16px;border-top:1px solid #F2EDF0;transition:background .15s;}
+.item{padding:12px 16px 12px 12px;border-top:1px solid #F2EDF0;transition:background .15s;}
 .item:hover{background:#fdfbfc;}
-.item.st-have{background:linear-gradient(to left,#f3fcf5,#fff);}
-.item.st-bought{background:linear-gradient(to left,#f2fbf6,#fff);}
-.item.st-loaned{background:linear-gradient(to left,#f3f8fe,#fff);}
+.item.st-have{background:linear-gradient(to left,#eef7f1,var(--card));}
+.item.st-bought{background:linear-gradient(to left,#edf7f0,var(--card));}
+.item.st-loaned{background:linear-gradient(to left,#edf3f8,var(--card));}
 .item-row1{display:flex;align-items:flex-start;gap:8px;margin-bottom:3px;}
 .item-name{font-size:14px;font-weight:600;flex:1;line-height:1.45;outline:none;border-radius:5px;padding:2px 5px;margin:-2px -5px;transition:background .15s;word-break:break-word;}
 .item-name:focus{background:#FFF8E0;outline:2px solid #D4A020;}
@@ -262,6 +262,23 @@ main{max-width:800px;margin:0 auto;padding:16px 14px 100px;}
 .add-btn:hover{color:var(--rose2);}
 .sec-complete-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0E5030;background:#C4ECDA;padding:2px 9px;border-radius:12px;margin-right:6px;animation:popIn .3s cubic-bezier(.17,.67,.35,1.3);}
 @keyframes popIn{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* ── STATUS DOT ── */
+.status-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;transition:all .2s;color:transparent;-webkit-tap-highlight-color:transparent;}
+.status-dot:active{transform:scale(.88);}
+.sd-none{border-color:var(--border2);}
+.sd-none:hover{border-color:var(--rose);background:var(--rose-bg);}
+.sd-have{border-color:var(--have-col);background:var(--have-bg);color:var(--have-col);}
+.sd-loaned{border-color:var(--sky);background:var(--sky-bg);color:var(--sky);}
+.sd-bought{border-color:var(--sage);background:var(--sage-bg);color:var(--sage);}
+
+/* ── SECTION DIVIDER ── */
+.sec-divider{display:flex;align-items:center;gap:10px;padding:6px 16px;margin:2px 0;}
+.sec-divider::before,.sec-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-divider span{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;}
+
+/* done items — subtle mute */
+.item.st-have .item-name,.item.st-loaned .item-name{color:var(--text2);}
 
 /* ── PIN MODAL ── */
 #pin-modal{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;}
@@ -897,6 +914,19 @@ function buildItemEl(sk,ik,it){
   const el=document.createElement('div');el.className='item st-'+st;el.dataset.item=sk+':'+ik;
 
   const r1=document.createElement('div');r1.className='item-row1';
+
+  /* quick-status dot — always visible, works in edit mode */
+  const dot=document.createElement('button');dot.className='status-dot sd-'+st;
+  const dotIcons={have:'✓',loaned:'↔',bought:'✓'};
+  dot.textContent=dotIcons[st]||'';
+  dot.title={none:'סמני כנקנה',have:'יש לנו — לחצי לשינוי',loaned:'הושאל — לחצי לשינוי',bought:'נקנה — לחצי לשינוי'}[st]||'';
+  if(editMode){
+    dot.onclick=e=>{e.stopPropagation();
+      const cycle={none:'bought',bought:'have',have:'loaned',loaned:'none'};
+      setStatus(sk,ik,cycle[st]||'none');};
+  }
+  r1.appendChild(dot);
+
   const nameEl=document.createElement('span');nameEl.className='item-name';
   nameEl.contentEditable=editMode?'true':'false';nameEl.textContent=it.name;
   if(editMode){nameEl.onblur=()=>saveItemName(sk,ik,nameEl);nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};}
@@ -1010,8 +1040,21 @@ function renderSections(main){
         '<span class="sec-mini-prog"><span class="sec-mini-fill" style="width:'+pct+'%"></span></span></div>'+
       '<span class="caret">▼</span>';
     const body=document.createElement('div');body.className='sec-body'+(isOpen?' open':'');
-    visible.sort((a,b)=>(getStatus(sec.items[a])==='none'?0:1)-(getStatus(sec.items[b])==='none'?0:1))
-      .forEach(ik=>{if(sec.items[ik])body.appendChild(buildItemEl(sk,ik,sec.items[ik]));});
+    const todoItems=visible.filter(ik=>getStatus(sec.items[ik])==='none');
+    const doneItems=visible.filter(ik=>getStatus(sec.items[ik])!=='none');
+    todoItems.forEach(ik=>{if(sec.items[ik])body.appendChild(buildItemEl(sk,ik,sec.items[ik]));});
+    if(todoItems.length>0&&doneItems.length>0){
+      const sep=document.createElement('div');sep.className='sec-divider';
+      const stLabels={have:'יש לנו',loaned:'הושאל',bought:'נקנה'};
+      const breakdown=Object.entries(doneItems.reduce((a,ik)=>{const s=getStatus(sec.items[ik]);a[s]=(a[s]||0)+1;return a;},{}))
+        .map(([s,n])=>n+' '+(stLabels[s]||s)).join(' · ');
+      sep.innerHTML='<span>✓ '+breakdown+'</span>';
+      body.appendChild(sep);
+    } else if(todoItems.length===0&&doneItems.length>0){
+      const sep=document.createElement('div');sep.className='sec-divider';
+      sep.innerHTML='<span>✓ הכל טופל!</span>';body.appendChild(sep);
+    }
+    doneItems.forEach(ik=>{if(sec.items[ik])body.appendChild(buildItemEl(sk,ik,sec.items[ik]));});
     if(editMode&&activeStatuses.size===0&&!searchQ&&activeSections.size===0&&activeTags.size===0){
       const addRow=document.createElement('div');addRow.className='add-row';
       addRow.innerHTML='<button class="add-btn" onclick="addItem(\''+esc(sk)+'\')">+ הוסף פריט</button>';
